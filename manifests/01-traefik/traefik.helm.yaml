@@ -1,0 +1,51 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: traefik
+  namespace: traefik
+
+spec:
+  chart: traefik
+  targetNamespace: traefik 
+  repo: https://helm.traefik.io/traefik
+  valuesContent: |
+    additionalArguments:
+      - --certificatesresolvers.generic.acme.email=ratealt@gmail.com
+      - --certificatesresolvers.generic.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.generic.acme.httpChallenge.entryPoint=web
+      - --certificatesresolvers.generic.acme.storage=/ssl-certs/acme-generic.json
+
+    service:
+      spec:
+        externalTrafficPolicy: Local
+
+    logs:
+      general:
+        level: ERROR
+
+    ports:
+      web:
+        port: 8000
+      websecure:
+        port: 8443
+        tls:
+          enabled: true
+          certResolver: generic
+
+    env:
+
+    ingressRoute:
+      dashboard:
+        enabled: false
+
+    persistence:
+      enabled: true
+      name: ssl-certs
+      size: 1Gi
+      path: /ssl-certs
+
+   
+
+    ingressClass:
+      enabled: true
+      isDefaultClass: true

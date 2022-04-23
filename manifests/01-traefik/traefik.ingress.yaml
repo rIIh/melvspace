@@ -1,0 +1,64 @@
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: traefik-dashboard
+  name: traefik-dashboard
+  namespace: traefik
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      containerPort: 9000
+    - name: https
+      port: 443
+      containerPort: 9000
+  selector:
+    app.kubernetes.io/instance: traefik
+
+--- 
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-dashboard
+  namespace: traefik
+  annotations:
+    # (Optional): Annotations for the Ingress Controller
+    # ---
+    # General:
+    kubernetes.io/ingress.class: traefik
+    # 
+    # TLS configuration:
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    #  
+    # Middleware:
+    # traefik.ingress.kubernetes.io/router.middlewares:your-middleware@kubernetescrd
+spec:
+  rules:
+  - http:
+    paths:
+    # Path-based routing settings:
+    - path: /dashboard
+      pathType: Prefix
+      backend:
+        service:
+          name: traefik-dashboard  # The name of the service
+          port:
+            number: 80  # Service Portnumber
+  - https:
+    paths:
+    # Path-based routing settings:
+    - path: /dashboard
+      pathType: Prefix
+      backend:
+        service:
+          name: traefik-dashboard  # The name of the service
+          port:
+            number: 443  # Service Portnumber
+  # tls:
+  # - hosts:
+  #   - your-hostname.com  # Your hostname
+  #   secretName: your-secret  # Your TLS Secret
